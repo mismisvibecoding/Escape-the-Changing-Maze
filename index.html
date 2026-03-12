@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Escape the Changing Maze</title>
+  <meta name="description" content="A thrilling browser maze game with procedurally generated levels, enemy AI, power-ups, and fog of war." />
+  <link rel="stylesheet" href="style.css?v=3" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <!-- ========== START SCREEN ========== -->
+  <div id="start-screen" class="screen active">
+    <div class="screen-content">
+      <div class="logo-glow"></div>
+      <h1 class="game-title">Escape the<br/><span class="highlight">Changing Maze</span></h1>
+      <p class="subtitle">Navigate the darkness. Dodge monsters. Collect everything. Escape alive.</p>
+      <div class="controls-info">
+        <div class="key-group">
+          <span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span>
+          <span class="key-label">Move</span>
+        </div>
+        <div class="key-group" style="margin-top:.4rem">
+          <span class="key key-wide">SPACE</span>
+          <span class="key-label">Dash</span>
+          <span class="key key-wide" style="margin-left: 10px;">E / SHIFT</span>
+          <span class="key-label">Blast</span>
+        </div>
+      </div>
+      <button id="btn-start" class="btn btn-primary" onclick="Game.start()">
+        <span>▶ Start Game</span>
+      </button>
+      <button id="btn-leaderboard" class="btn btn-secondary" onclick="UI.showLeaderboard()">
+        🏆 Leaderboard
+      </button>
+    </div>
+  </div>
+
+  <!-- ========== GAME HUD ========== -->
+  <div id="game-screen" class="screen">
+    <div id="hud">
+      <div class="hud-item" id="hud-level">
+        <span class="hud-label">Level</span>
+        <span class="hud-value" id="display-level">1</span>
+      </div>
+      <div class="hud-item" id="hud-score">
+        <span class="hud-label">Score</span>
+        <span class="hud-value" id="display-score">0</span>
+      </div>
+      <div class="hud-item" id="hud-timer">
+        <span class="hud-label">Time</span>
+        <span class="hud-value" id="display-timer">60</span>
+      </div>
+      <div class="hud-item" id="hud-coins">
+        <span class="hud-label">Coins</span>
+        <span class="hud-value" id="display-coins">0</span>
+      </div>
+      <div class="hud-item" id="hud-combo">
+        <span class="hud-label">Combo</span>
+        <span class="hud-value" id="display-combo">—</span>
+      </div>
+      <div class="hud-item" id="hud-dash">
+        <span class="hud-label">Dash</span>
+        <span class="hud-value" id="display-dash">●●●</span>
+      </div>
+      <div class="hud-item" id="hud-blast">
+        <span class="hud-label">Blast</span>
+        <span class="hud-value" id="display-blast">1</span>
+      </div>
+    </div>
+    <!-- Active power-up indicators -->
+    <div id="powerup-indicators"></div>
+    <!-- Floating score popups layer -->
+    <div id="popup-layer"></div>
+    <!-- Achievement toasts -->
+    <div id="toast-container"></div>
+    <!-- Main game canvas -->
+    <canvas id="game-canvas"></canvas>
+    <!-- Minimap canvas -->
+    <canvas id="minimap-canvas"></canvas>
+  </div>
+
+  <!-- ========== LEVEL COMPLETE SCREEN ========== -->
+  <div id="level-screen" class="screen">
+    <div class="screen-content">
+      <h2 class="level-title">Level <span id="level-cleared">1</span> Complete!</h2>
+      <div class="level-stats">
+        <div class="stat"><span class="stat-label">Time Bonus</span><span class="stat-value" id="stat-time">0</span></div>
+        <div class="stat"><span class="stat-label">Coins</span><span class="stat-value" id="stat-coins">0</span></div>
+        <div class="stat"><span class="stat-label">Best Combo</span><span class="stat-value" id="stat-combo">0</span></div>
+        <div class="stat"><span class="stat-label">Near Misses</span><span class="stat-value" id="stat-nearmiss">0</span></div>
+        <div class="stat stat-total"><span class="stat-label">Total Score</span><span class="stat-value" id="stat-total">0</span></div>
+      </div>
+      <button class="btn btn-primary" onclick="Game.nextLevel()">Next Level →</button>
+    </div>
+  </div>
+
+  <!-- ========== GAME OVER SCREEN ========== -->
+  <div id="gameover-screen" class="screen">
+    <div class="screen-content">
+      <h2 class="gameover-title">Game Over</h2>
+      <p class="gameover-reason" id="gameover-reason">Time's up!</p>
+      <div class="level-stats">
+        <div class="stat"><span class="stat-label">Level Reached</span><span class="stat-value" id="go-level">1</span></div>
+        <div class="stat"><span class="stat-label">Final Score</span><span class="stat-value" id="go-score">0</span></div>
+        <div class="stat"><span class="stat-label">Best Combo</span><span class="stat-value" id="go-combo">0</span></div>
+      </div>
+      <div class="gameover-name-entry" id="name-entry">
+        <input type="text" id="player-name" placeholder="Enter your name" maxlength="12" />
+        <button class="btn btn-small" onclick="UI.saveScore()">Save</button>
+      </div>
+      <button class="btn btn-primary" onclick="Game.restart()">🔄 Play Again</button>
+      <button class="btn btn-secondary" onclick="UI.showScreen('start-screen')">Menu</button>
+    </div>
+  </div>
+
+  <!-- ========== LEADERBOARD SCREEN ========== -->
+  <div id="leaderboard-screen" class="screen">
+    <div class="screen-content">
+      <h2 class="leaderboard-title">🏆 Leaderboard</h2>
+      <div id="leaderboard-list" class="leaderboard-list"></div>
+      <button class="btn btn-secondary" onclick="UI.showScreen('start-screen')">← Back</button>
+    </div>
+  </div>
+
+  <script src="game.js?v=4"></script>
+</body>
+</html>
